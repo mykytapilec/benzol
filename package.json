@@ -1,0 +1,21 @@
+{
+  "name": "benzol",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Hexagonal 2048 — monorepo (web + mobile + server)",
+  "author": "Mikita Pilets",
+  "license": "MIT",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:server": "pnpm --filter server start:dev",
+    "dev:mobile": "pnpm --filter mobile start",
+    "dev:all": "concurrently \"pnpm dev:web\" \"pnpm dev:server\"",
+    "lint": "eslint . --ext .ts,.tsx --fix"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "eslint": "^9.14.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}
