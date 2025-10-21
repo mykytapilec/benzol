@@ -1,14 +1,26 @@
 import { Game } from './game';
 import { Direction } from './game.types';
 
-const game = new Game();
-console.log('Initial state:');
-game.print();
+describe('Game', () => {
+  it('should initialize with correct number of cells', () => {
+    const game = new Game(5);
+    expect(game.cells.length).toBe(25);
+  });
 
-game.move(Direction.RIGHT);
-console.log('After move RIGHT:');
-game.print();
+  it('should initialize with exactly 3 non-zero tiles', () => {
+    const game = new Game(5);
+    const nonZeroTiles = game.cells.filter(cell => cell.value !== 0);
+    expect(nonZeroTiles.length).toBe(3);
+    nonZeroTiles.forEach(cell => {
+      expect([2, 4]).toContain(cell.value);
+    });
+  });
 
-game.move(Direction.LEFT);
-console.log('After move LEFT:');
-game.print();
+  it('should log move direction', () => {
+    const game = new Game(5);
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    game.move(Direction.LEFT);
+    expect(consoleSpy).toHaveBeenCalledWith('Moving LEFT');
+    consoleSpy.mockRestore();
+  });
+});
