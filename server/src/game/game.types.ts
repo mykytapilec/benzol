@@ -1,17 +1,19 @@
+export enum Direction {
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+  UP_LEFT = 'UP_LEFT',
+  UP_RIGHT = 'UP_RIGHT',
+  DOWN_LEFT = 'DOWN_LEFT',
+  DOWN_RIGHT = 'DOWN_RIGHT',
+}
 export interface Cell {
-  id: string;
-  value: number;
+  id: number;    
+  col: number;   
+  row: number;   
+  value: number; 
 }
-
 export interface GameState {
-  board: Cell[][];
+  cells: Cell[];
   score: number;
+  isOver: boolean;
 }
-
-export type Direction =
-  | 'LEFT'
-  | 'RIGHT'
-  | 'UP_LEFT'
-  | 'UP_RIGHT'
-  | 'DOWN_LEFT'
-  | 'DOWN_RIGHT';
