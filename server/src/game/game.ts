@@ -1,49 +1,43 @@
-import { Cell, Direction, GameState } from './game.types';
+import { GameState, Cell, Direction } from './game.types';
 
 export class Game {
   private state: GameState;
 
-  constructor(size = 5) {
-    const cells: Cell[] = [];
-    let id = 0;
-
-    for (let col = 0; col < size; col++) {
-      for (let row = 0; row < size; row++) {
-        cells.push({ id: id++, col, row, value: 0 });
-      }
-    }
-
-    this.addRandomTiles(cells, 3);
-
-    this.state = {
-      cells,
-      score: 0,
-      isOver: false,
-    };
+  constructor(initialState?: GameState) {
+    this.state = initialState || { cells: [], score: 0, isOver: false };
   }
 
-  private addRandomTiles(cells: Cell[], count: number) {
-    const empty = cells.filter(c => c.value === 0);
-    for (let i = 0; i < count && empty.length > 0; i++) {
-      const idx = Math.floor(Math.random() * empty.length);
-      const cell = empty.splice(idx, 1)[0];
-      cell.value = Math.random() < 0.9 ? 2 : 4;
-    }
+  public getState(): GameState {
+    return this.state;
   }
 
-  move(direction: Direction) {
-    console.log(`Moving ${direction}`);
-  }
-
-  get cells() {
-    return this.state.cells;
-  }
-
-  get score() {
-    return this.state.score;
-  }
-
-  get isOver() {
+  public checkGameOver(): boolean {
+    const full = this.state.cells.every(c => c.value > 0);
+    this.state.isOver = full; 
     return this.state.isOver;
+  }
+
+  public addRandomCell(): void {
+    const emptyCells = this.getEmptyCells();
+    if (!emptyCells.length) return;
+
+    const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    cell.value = Math.random() < 0.9 ? 2 : 4;
+  }
+
+  private getEmptyCells(): Cell[] {
+    return this.state.cells.filter(c => c.value === 0);
+  }
+
+  public move(direction: Direction): void {
+
+    if (direction === Direction.LEFT) {
+      const newCells = [...this.state.cells];
+      newCells.forEach(cell => {
+        // TODO
+      });
+      this.state.cells = newCells;
+    }
+    // TODO
   }
 }
