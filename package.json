@@ -6,11 +6,16 @@
   "author": "Mikita Pilets",
   "license": "MIT",
   "scripts": {
-    "dev:web": "pnpm --filter web dev",
+    "dev": "pnpm --parallel dev:*",
     "dev:server": "pnpm --filter server start:dev",
-    "dev:mobile": "pnpm --filter mobile start",
-    "dev:all": "concurrently \"pnpm dev:web\" \"pnpm dev:server\"",
-    "lint": "eslint . --ext .ts,.tsx --fix"
+    "dev:client": "pnpm --filter client dev",
+    "build": "pnpm --parallel build:*",
+    "build:server": "pnpm --filter server build",
+    "build:client": "pnpm --filter client build",
+    "lint": "pnpm --parallel lint:*",
+    "format": "prettier --write .",
+    "db:migrate": "pnpm --filter server prisma migrate dev",
+    "db:generate": "pnpm --filter server prisma generate"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
