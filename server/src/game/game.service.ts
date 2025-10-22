@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
+import { GameState } from './entities/game.entity';
 
 @Injectable()
 export class GameService {
@@ -10,8 +11,8 @@ export class GameService {
   async create(userId: number, createGameDto: CreateGameDto) {
     return this.prisma.game.create({
       data: {
-        userId,
-        state: createGameDto.state,
+        user: { connect: { id: userId } },
+        state: createGameDto.state as unknown as object,
       },
     });
   }
@@ -19,28 +20,41 @@ export class GameService {
   async findAll(userId: number) {
     return this.prisma.game.findMany({
       where: { userId },
-      orderBy: { id: 'desc' },
     });
   }
 
-  async findOne(userId: number, gameId: number) {
-    const game = await this.prisma.game.findFirst({
-      where: { id: gameId, userId },
-    });
-    if (!game) throw new NotFoundException('Game not found');
-    return game;
+  async findOne(id: number) {
+    const game = await this.prisma.game.findUnique({ where: { id } });
+    if (!game) return null;
+
+    const state = game.state ? (game.state as unknown as GameState) : undefined;
+    return { ...game, state };
   }
 
-  async update(userId: number, gameId: number, updateGameDto: UpdateGameDto) {
-    const game = await this.findOne(userId, gameId);
+  async update(id: number, updateGameDto: UpdateGameDto) {
     return this.prisma.game.update({
-      where: { id: game.id },
-      data: { state: updateGameDto.state },
+      where: { id },
+      data: { state: updateGameDto.state as unknown as object },
     });
   }
 
-  async remove(userId: number, gameId: number) {
-    const game = await this.findOne(userId, gameId);
-    return this.prisma.game.delete({ where: { id: game.id } });
+  async remove(id: number) {
+    return this.prisma.game.delete({ where: { id } });
+  }
+
+  async makeMove(id: number, moveData: any) {
+    const game = await this.findOne(id);
+    if (!game) throw new Error('Game not found');
+
+    const state = game.state as GameState;
+    const newScore = (state.score || 0) + 1;
+
+    const newState = {
+      ...state,
+      score: newScore,
+      isOver: newScore >= 10, // условное завершение игры
+    };
+
+    return this.update(id, { state: newState });
   }
 }
