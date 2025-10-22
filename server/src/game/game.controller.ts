@@ -1,44 +1,53 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { GameService } from './game.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('game')
+@UseGuards(JwtAuthGuard)
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Req() req: any, @Body() createGameDto: CreateGameDto) {
-    return this.gameService.create(req.user.id, createGameDto);
+  async create(@Req() req: Request, @Body() createGameDto: CreateGameDto) {
+    const user = req.user as any;
+    return this.gameService.create(user.sub, createGameDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(@Req() req: any) {
-    return this.gameService.findAll(req.user.id);
+  async findAll(@Req() req: Request) {
+    const user = req.user as any;
+    return this.gameService.findAll(user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async findOne(@Req() req: any, @Param('id') id: number) {
-    return this.gameService.findOne(req.user.id, +id);
+  async findOne(@Req() req: Request, @Param('id') id: string) {
+    return this.gameService.findOne(+id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
-    @Req() req: any,
-    @Param('id') id: number,
-    @Body() updateGameDto: UpdateGameDto
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() updateGameDto: UpdateGameDto,
   ) {
-    return this.gameService.update(req.user.id, +id, updateGameDto);
+    return this.gameService.update(+id, updateGameDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Req() req: any, @Param('id') id: number) {
-    return this.gameService.remove(req.user.id, +id);
+  async remove(@Req() req: Request, @Param('id') id: string) {
+    return this.gameService.remove(+id);
   }
 }
