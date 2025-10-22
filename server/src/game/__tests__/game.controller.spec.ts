@@ -1,10 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GameController } from '../game.controller';
 import { GameService } from '../game.service';
+import { Direction } from '../game.types';
 
 describe('GameController', () => {
   let controller: GameController;
   let service: GameService;
+
+  const mockUser = { id: 1 };
 
   const mockGameService = {
     create: jest.fn(),
@@ -27,38 +30,38 @@ describe('GameController', () => {
 
     controller = module.get<GameController>(GameController);
     service = module.get<GameService>(GameService);
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should call create on service', async () => {
-    const dto = { state: { score: 0, cells: [], isOver: false } };
-    const req = { user: { sub: 1 } } as any;
-    await controller.create(req, dto);
-    expect(service.create).toHaveBeenCalledWith(1, dto);
+  it('should call service.create', async () => {
+    const dto = {};
+    await controller.create(mockUser as any, dto);
+    expect(service.create).toHaveBeenCalledWith(mockUser.id, dto);
   });
 
-  it('should call findAll on service', async () => {
-    const req = { user: { sub: 1 } } as any;
-    await controller.findAll(req);
-    expect(service.findAll).toHaveBeenCalledWith(1);
+  it('should call service.findAll', async () => {
+    await controller.findAll(mockUser as any);
+    expect(service.findAll).toHaveBeenCalledWith(mockUser.id);
   });
 
-  it('should call findOne on service', async () => {
-    await controller.findOne({} as any, '1');
-    expect(service.findOne).toHaveBeenCalledWith(1);
+  it('should call service.findOne', async () => {
+    await controller.findOne('42');
+    expect(service.findOne).toHaveBeenCalledWith(42);
   });
 
-  it('should call update on service', async () => {
-    const dto = { state: { score: 10, cells: [], isOver: false } };
-    await controller.update({} as any, '1', dto);
-    expect(service.update).toHaveBeenCalledWith(1, dto);
+  it('should call service.update (move)', async () => {
+    const direction: Direction = Direction.LEFT;
+    await controller.move('42', direction);
+    expect(service.update).toHaveBeenCalledWith(42, direction);
   });
 
-  it('should call remove on service', async () => {
-    await controller.remove({} as any, '1');
-    expect(service.remove).toHaveBeenCalledWith(1);
+  it('should call service.remove', async () => {
+    await controller.remove('42');
+    expect(service.remove).toHaveBeenCalledWith(42);
   });
 });
