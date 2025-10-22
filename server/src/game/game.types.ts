@@ -9,8 +9,9 @@ export enum Direction {
 
 export interface Cell {
   id: number;
-  col: number;
-  row: number;
+  q: number; // ось q
+  r: number; // ось r
+  s: number; // ось s (всегда q + r + s = 0)
   value: number;
 }
 
