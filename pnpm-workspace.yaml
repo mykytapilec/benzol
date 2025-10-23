@@ -1,5 +1,5 @@
 packages:
-  - "web"
+  - "client"
   - "mobile"
   - "server"
   - "shared"
