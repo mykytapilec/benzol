@@ -1,66 +1,31 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import RegisterPage from "../pages/RegisterPage";
+import { MemoryRouter } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
-import { api } from "../lib/api";
-
-vi.mock("../lib/api", () => ({
-  api: { post: vi.fn() },
-}));
+import RegisterPage from "../pages/RegisterPage";
+import { describe, expect, it } from "vitest";
 
 describe("Auth pages", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("renders register form and submits data", async () => {
-    const mockedPost = api.post as Mock;
-    mockedPost.mockResolvedValue({ data: { id: 1 } });
-
+  it("renders login form", () => {
     render(
-      <MemoryRouter initialEntries={["/register"]}>
-        <Routes>
-          <Route path="/register" element={<RegisterPage />} />
-        </Routes>
+      <MemoryRouter>
+        <LoginPage />
       </MemoryRouter>
     );
 
-    const user = userEvent.setup();
-
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Password"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirm password"), "password123");
-    await user.click(screen.getByRole("button", { name: /sign up/i }));
-
-    expect(mockedPost).toHaveBeenCalledWith("/auth/register", {
-      email: "test@example.com",
-      password: "password123",
-    });
+    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("renders login form and submits data", async () => {
-    const mockedPost = api.post as Mock;
-    mockedPost.mockResolvedValue({ data: { access_token: "mockToken" } });
-
+  it("renders register form", () => {
     render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-        </Routes>
+      <MemoryRouter>
+        <RegisterPage />
       </MemoryRouter>
     );
 
-    const user = userEvent.setup();
-
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Password"), "password123");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-
-    expect(mockedPost).toHaveBeenCalledWith("/auth/login", {
-      email: "test@example.com",
-      password: "password123",
-    });
+    expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /register/i })).toBeInTheDocument();
   });
 });

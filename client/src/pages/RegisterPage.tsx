@@ -1,61 +1,68 @@
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { api } from '../lib/api'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, type FormEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/useAuthStore";
+import type { User } from "../types/auth";
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  confirmPassword: z.string().min(6),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-})
-
-type RegisterForm = z.infer<typeof registerSchema>
+interface RegisterResponse {
+  access_token: string;
+  user: User;
+}
 
 export default function RegisterPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  })
-  const navigate = useNavigate()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
 
-  const onSubmit = async (data: RegisterForm) => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
     try {
-      await api.post('/auth/register', { email: data.email, password: data.password })
-      navigate('/login')
-    } catch {
-      alert('Registration failed')
+      const res = await api.post<RegisterResponse>("/auth/register", { email, password });
+      setAuth(res.data.user, res.data.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to register");
     }
-  }
+  };
 
   return (
-    <div className="w-full max-w-sm p-6 bg-white rounded-2xl shadow-md">
-      <h1 className="text-2xl font-bold mb-4 text-center">Register</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <input {...register('email')} type="email" placeholder="Email"
-            className="w-full border p-2 rounded" />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-        </div>
-        <div>
-          <input {...register('password')} type="password" placeholder="Password"
-            className="w-full border p-2 rounded" />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
-        </div>
-        <div>
-          <input {...register('confirmPassword')} type="password" placeholder="Confirm password"
-            className="w-full border p-2 rounded" />
-          {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>}
-        </div>
-        <button type="submit" className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
-          Sign Up
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-2xl font-semibold mb-4">Register</h1>
+
+      <form onSubmit={handleSubmit} className="flex flex-col w-80 gap-3">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border rounded p-2"
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="border rounded p-2"
+          required
+        />
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <button type="submit" className="bg-green-600 text-white p-2 rounded">
+          Register
         </button>
+
+        <p className="text-sm text-gray-500 text-center">
+          Already have an account? <Link to="/login" className="text-blue-600">Login</Link>
+        </p>
       </form>
-      <p className="text-center text-sm mt-4">
-        Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-      </p>
     </div>
-  )
+  );
 }

@@ -1,30 +1,28 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useAuthStore } from "../store/useAuthStore";
+import type { User } from "../types/auth";
 
 describe("useAuthStore", () => {
   beforeEach(() => {
-    const { logout } = useAuthStore.getState();
-    logout(); // очистить перед каждым тестом
+    useAuthStore.setState({ user: null, token: null });
   });
 
   it("sets and retrieves token", () => {
-    const { setToken } = useAuthStore.getState();
-    setToken("abc123");
+    const mockUser: User = { id: 1, email: "test@example.com" };
+    useAuthStore.getState().setAuth(mockUser, "abc123");
     expect(useAuthStore.getState().token).toBe("abc123");
   });
 
   it("sets and retrieves user", () => {
-    const { setUser } = useAuthStore.getState();
-    const mockUser = { id: 1, email: "test@example.com" };
-    setUser(mockUser);
+    const mockUser: User = { id: 1, email: "test@example.com" };
+    useAuthStore.getState().setAuth(mockUser, "abc123");
     expect(useAuthStore.getState().user).toEqual(mockUser);
   });
 
   it("logout clears user and token", () => {
-    const { setUser, setToken, logout } = useAuthStore.getState();
-    setUser({ id: 1, email: "a@b.com" });
-    setToken("123");
-    logout();
+    const mockUser: User = { id: 1, email: "test@example.com" };
+    useAuthStore.getState().setAuth(mockUser, "abc123");
+    useAuthStore.getState().logout();
     expect(useAuthStore.getState().user).toBeNull();
     expect(useAuthStore.getState().token).toBeNull();
   });
