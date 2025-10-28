@@ -1,68 +1,44 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import type { User } from "../types/auth";
 
-interface LoginResponse {
-  access_token: string;
-  user: User;
-}
-
-export default function LoginPage() {
+export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const login = useAuthStore((s) => s.login);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    try {
-      const res = await api.post<LoginResponse>("/auth/login", { email, password });
-      setAuth(res.data.user, res.data.access_token);
-      navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
-      setError("Invalid email or password");
-    }
+    await login(email, password);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-semibold mb-4">Login</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col w-80 gap-3">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-6 rounded-2xl shadow-md w-80"
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border rounded p-2"
-          required
+          className="border p-2 w-full mb-2 rounded"
         />
-
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border rounded p-2"
-          required
+          className="border p-2 w-full mb-4 rounded"
         />
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button type="submit" className="bg-blue-600 text-white p-2 rounded">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600"
+        >
           Login
         </button>
-
-        <p className="text-sm text-gray-500 text-center">
-          Don’t have an account? <Link to="/register" className="text-blue-600">Register</Link>
-        </p>
       </form>
     </div>
   );
-}
+};

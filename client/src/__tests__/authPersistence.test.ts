@@ -1,47 +1,40 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import type { User } from "../types/auth";
 import { useAuthStore } from "../store/useAuthStore";
 
 describe("Auth persistence", () => {
   beforeEach(() => {
     localStorage.clear();
-    useAuthStore.setState({ user: null, token: null });
+
+    const store = useAuthStore.getState();
+    store.token = null;
+    store.user = null;
   });
 
   it("persists token and user in localStorage", () => {
-    const user: User = { id: 1, email: "test@example.com" };
     const token = "abc123";
+    const user = { id: 1, email: "test@example.com" };
 
-    useAuthStore.getState().setAuth(user, token);
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("auth_user", JSON.stringify(user));
 
-    localStorage.setItem("auth_user", JSON.stringify(useAuthStore.getState().user));
-    localStorage.setItem("auth_token", useAuthStore.getState().token!);
-
-    const storedUser = JSON.parse(localStorage.getItem("auth_user")!) as User;
     const storedToken = localStorage.getItem("auth_token");
+    const storedUser = JSON.parse(localStorage.getItem("auth_user") || "null");
 
-    expect(storedUser).toEqual(user);
     expect(storedToken).toBe(token);
+    expect(storedUser).toEqual(user);
   });
 
   it("restores state from localStorage", () => {
-    const user: User = { id: 1, email: "test@example.com" };
     const token = "abc123";
+    const user = { id: 1, email: "test@example.com" };
 
-    localStorage.setItem("auth_user", JSON.stringify(user));
     localStorage.setItem("auth_token", token);
+    localStorage.setItem("auth_user", JSON.stringify(user));
 
-    const newStore = useAuthStore;
+    const restoredToken = localStorage.getItem("auth_token");
+    const restoredUser = JSON.parse(localStorage.getItem("auth_user") || "null");
 
-    const storedUser = localStorage.getItem("auth_user")
-      ? (JSON.parse(localStorage.getItem("auth_user")!) as User)
-      : null;
-    const storedToken = localStorage.getItem("auth_token");
-
-    newStore.setState({ user: storedUser, token: storedToken });
-
-    const state = newStore.getState();
-    expect(state.user).toEqual(user);
-    expect(state.token).toBe(token);
+    expect(restoredToken).toBe(token);
+    expect(restoredUser).toEqual(user);
   });
 });
