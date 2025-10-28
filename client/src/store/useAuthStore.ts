@@ -1,11 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { User } from "../types/auth";
+import { AuthService } from "../services/authService";
+
+interface User {
+  id: number;
+  email: string;
+}
 
 interface AuthState {
   user: User | null;
   token: string | null;
-  setAuth: (user: User, token: string) => void;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -14,11 +21,42 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
+      isAuthenticated: false,
 
-      setAuth: (user, token) => set({ user, token }),
+      login: async (email, password) => {
+        try {
+          const { user, token } = await AuthService.login(email, password);
+          set({ user, token, isAuthenticated: true });
+          window.location.href = "/game";
+        } catch (error) {
+          console.error("Login error:", error);
+          alert("Login failed");
+        }
+      },
 
-      logout: () => set({ user: null, token: null }),
+      register: async (email, password) => {
+        try {
+          const { user, token } = await AuthService.register(email, password);
+          set({ user, token, isAuthenticated: true });
+          window.location.href = "/game";
+        } catch (error) {
+          console.error("Register error:", error);
+          alert("Registration failed");
+        }
+      },
+
+      logout: () => {
+        set({ user: null, token: null, isAuthenticated: false });
+        window.location.href = "/login";
+      },
     }),
-    { name: "auth-storage" }
+    {
+      name: "auth-storage",
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
   )
 );

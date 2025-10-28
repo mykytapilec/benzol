@@ -1,36 +1,26 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from 'server/src/app.module';
-import { PrismaService } from 'server/src/prisma/prisma.service';
+import { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AppModule } from '../../app.module';
 
 describe('AuthModule (Integration)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
 
   const userDto = {
     email: 'integration@test.com',
-    password: 'test1234',
+    password: 'password123',
   };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    prisma = app.get(PrismaService);
-
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-
+    app = moduleRef.createNestApplication();
     await app.init();
-    await prisma.$connect();
-
-    await prisma.user.deleteMany({});
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
     await app.close();
   });
 
@@ -40,17 +30,23 @@ describe('AuthModule (Integration)', () => {
       .send(userDto)
       .expect(201);
 
-    expect(res.body).toHaveProperty('id');
-    expect(res.body.email).toBe(userDto.email);
+    expect(res.body).toHaveProperty('access_token');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user).toHaveProperty('id');
+    expect(res.body.user.email).toBe(userDto.email);
   });
 
   it('should login and return a JWT token', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send(userDto)
-      .expect(201);
+      .expect(200);
 
     expect(res.body).toHaveProperty('access_token');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user).toHaveProperty('id');
+    expect(res.body.user.email).toBe(userDto.email);
+
     process.env.TEST_JWT = res.body.access_token;
   });
 });

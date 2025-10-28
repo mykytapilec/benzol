@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
-import LoginPage from '../pages/LoginPage'
-import RegisterPage from '../pages/RegisterPage'
+import { LoginPage } from '../pages/LoginPage'
+import { RegisterPage } from '../pages/RegisterPage'
 import ProtectedRoute from '../components/ProtectedRoute'
 import GamePage from '../pages/GamePage'
 import Layout from '../components/Layout'

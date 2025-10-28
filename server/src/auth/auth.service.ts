@@ -6,17 +6,21 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService
-  ) {}
+  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async signup(data: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.prisma.user.create({
-      data: { ...data, password: hashedPassword },
+      data: { email: data.email, password: hashedPassword },
     });
-    return { ...user, password: undefined };
+
+    const payload = { sub: user.id, email: user.email };
+    const access_token = this.jwtService.sign(payload);
+
+    return {
+      access_token,
+      user: { id: user.id, email: user.email },
+    };
   }
 
   async login(email: string, password: string) {
@@ -27,6 +31,14 @@ export class AuthService {
     if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: user.id, email: user.email };
-    return { access_token: this.jwtService.sign(payload) };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    return {
+        access_token,
+        user: {
+        id: user.id,
+        email: user.email,
+        },
+    };
   }
 }
